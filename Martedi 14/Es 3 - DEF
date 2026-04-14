@@ -1,0 +1,36 @@
+print("- REGISTRAZIONE e LOGIN -\n")
+
+scelta = input("Vuoi creare un nuovo account? (sì/no): ")
+
+if scelta == "sì" or scelta == "si":
+    # Creazione nuovo account
+    print("\n- Crea nuovo account -")
+    
+    nome = input("Inserisci il tuo nome: ")
+    password = input("Inserisci una password: ")
+    
+    id_utente = 10001 # ricordare che non è possibile utilizzare più di due volte 0 come valore: es 001 NO ma 1001 si
+    
+    print("\n Account creato con successo!")
+    print(f"Nome: {nome}")
+    print(f"Password: {password}")
+    print(f"ID Utente: {id_utente}")
+
+else:
+    id_utente = 10001
+    # Controllo del login (se l'account è esistente)
+    print("\n - Login -")
+    
+    nome = input("Inserisci il tuo nome: ")
+    password = input("Inserisci la password: ")
+    
+    # Controllo account
+    if nome == "Luca" and password == "140426":
+        print("\n Login effettuato con successo! =)")
+        print(f"Benvenuto {nome}!")
+        print(f"ID Utente: {id_utente}")
+    else:
+        print("\nX_X Nome o password sbagliati! X_X ")
+        print("Accesso negato.")
+
+print("\n- FINE -")

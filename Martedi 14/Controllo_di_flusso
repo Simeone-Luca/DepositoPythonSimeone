@@ -1,0 +1,14 @@
+numero = 100
+
+if numero > 0:
+    print("Positivo")
+    if numero == 100:
+        print("WOW!")
+elif numero < 0:
+    print("Negativo")
+    
+else:
+    print("E' uguale a 0")
+    
+
+    
