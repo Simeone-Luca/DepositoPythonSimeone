@@ -1,0 +1,5 @@
+n = int(input("Inserisci un numero: "))
+if n % 2 == 0:
+    print("Numero pari")
+else:
+    print("Numero dispari")
