@@ -1,0 +1,299 @@
+# ----------------------------------------------
+# | Calcolatrice con sistema di autenticazione |
+# ----------------------------------------------
+# Richieste della traccia:
+# - Niente oggetti
+# - Utenti salvati in una lista
+# - Registrazione e login
+# - Password con criteri minimi (Aggiunta personale)
+# - Nessun username duplicato
+# - Dopo il login e la registrazione, menu principale con: 1) calcolatrice, 2) visualizza dati utente, 3) esci
+# - Calcolatrice con 7 operazioni (Solo 5 richieste) e sotto-menu a calcolatrice per sceglierle
+# - Ogni operazione salva valori inseriti + risultato in una lista di storico
+# - Dopo 4 operazioni deve buttare fuori e far rifare il login
+# - Nel menu calcolatrice segnalalo il minimo di 5 operazioni disponibili
+
+
+# 1) Definisco le variabili globali e le strutture dei dati principali in cui users è una lista di liste. ogni utente è [username, password]
+
+users = [] # Lista globale che tiene conto degli utenti
+current_user = None # Nome utente loggato e None se non loggato
+session_operations = 0 # Conta quante operazioni vengono fatte in questa sessione di login
+
+# 2) Funzuone per validare la password controllando i criteri minimi della password: lunghezza >= 8; almeno 1 numero; almeno 1 carattere speciale
+
+def valida_password(password): # Passo password come paramentro per permettere il check dei reqisiti minimi
+    if len(password) < 8: # Condizione con lunghezza minima
+        return False
+    
+    has_numero = False
+    has_speciale = False
+    
+    for char in password: # Ciclo per controllare ogni carattere
+        if char.isdigit(): # Operatore booleano per capire se è un numero (Grazie ai, tvb)
+            has_numero = True
+        if char in "!@#$%^&*()_+-=[]{}\\|;:'\",.<>/?": # Controllo del carattere speciale
+            has_speciale = True
+    
+    return has_numero and has_speciale
+
+# 3) Controllo se l'username è già presente nella lista users
+
+def username_unico(username): # Idem qui
+    for user in users: # Ciclo su tutta la lista utenti
+        if user[0] == username: # Confronto delle stringhe
+            return False
+    return True# Se non lo trova è unico
+
+# 4) Registrazione che permette la creazione di un nuovo utente in cui viene chiesto username e password, poi convalida tutto e aggiunge alla lista users il nuovo user
+# Dopo registrazione riuscita fa auto-login e aggiorna current_user
+
+def registra_utente():
+    global current_user, session_operations# Modifico le variabili globali
+    
+    while True: # Ciclo finché non si registra correttamente
+        username = input("\nInserisci username: ")
+        
+        if not username_unico(username):# Condizione in cui controllo se username già esiste
+            print(" Username già in uso! Scegline un altro.")
+            continue
+        
+        password = input("Inserisci password (min 8 caratteri, 1 numero, 1 speciale): ")
+        
+        if valida_password(password):# Richiamo la funzione di validazione
+            users.append([username, password, []]) # Aggiunge alla lista users
+            print("Registrazione completata!")
+            current_user = username # Auto-login dopo registrazione
+            session_operations = 0
+            return True
+        else:
+            print("Password non valida! Devi rispettare i criteri.")
+
+# 5) Login utente in cui cntrollo se username e password corrispondono a un utente nella lista.
+# Se sì fa login e fa rsetta il contatore operazioni
+
+def login_utente():
+    global current_user, session_operations
+    
+    while True:
+        username = input("\nInserisci username: ")
+        password = input("Inserisci password: ")
+        
+        for user in users: # Ciclo per cercare l'utente in lista
+            if user[0] == username and user[1] == password: # Confronto esatto
+                print("Login effettuato!")
+                current_user = username
+                session_operations = 0
+                return True
+        
+        print("Username o password errati! Riprova.")
+
+# 6) Visualizzazione dati utente dove viene mostrato username e tutta la lista dei risultati + valori inseriti (storico)
+# Usa ciclo for per stampare ogni operazione salvata
+
+def visualizza_dati_utente():
+    if not current_user: # Condizione di sicurezza
+        return
+    
+    print(f"\n--- DATI UTENTE di: {current_user} ---")
+    
+    # Cercho l'utente in lista users tramite ciclo for
+    for user in users:
+        if user[0] == current_user:
+            history = user[2]# lista della cronologia dell'utente
+            
+            if not history:
+                print("Nessuna operazione eseguita ancora.") # controllo se c'è uno storico altrimenti lo stampo
+            else:
+                print("Storico operazioni:")
+                for i, op in enumerate(history, 1):  # Ciclo con indice
+                    print(f"{i}. {op[0]} | Valori inseriti: {op[1]} | Risultato: {op[2]}")
+            break
+
+# 7) Menù calcolatrice con sotto menù per scegliere l'operazione
+# Dopo ogni operazione chiedo i numeri, 1 o 2 a seconda dell'operazione poi esegue il calcolo e salva nella lista cronologica: nome operaione, valori e risultato
+# Poi, viene incrementato il contatore di sessione e se si arriva a 5 operazioni torna al menù primario e rifà il login
+
+def menu_calcolatrice():
+    global session_operations, current_user
+    
+    if not current_user: # se non c'è, return
+        return
+    
+    print("\n--- MENU CALCOLATRICE ---")
+    print(" Dopo 5 operazioni nella sessione corrente dovrai effettuare nuovamente il login.")
+    print("1) Addizione")
+    print("2) Sottrazione")
+    print("3) Moltiplicazione")
+    print("4) Divisione")
+    print("5) Potenza")
+    print("6) Radice quadrata")
+    print("7) Percentuale")
+    print("0) Torna al menu principale")
+    
+    while True:# Ciclo per fare più operazioni finché non superi il limite
+        scelta = input("\nScegli operazione (0-7): ")
+        
+        try:
+            scelta = int(scelta)
+        except:
+            print("Inserisci un numero!")
+            continue
+        
+        # Variabili temporanee per questa operazione
+        op_nome = ""
+        valori_inseriti = ""
+        risultato = 0.0
+        
+        # OPERAZIONI
+        match scelta:
+            case 0:
+                return# Torna al menu principale
+        
+            case 1: # Addizione
+                op_nome = "Addizione"
+                print(op_nome)
+                a = float(input("Inserisci primo numero: "))
+                b = float(input("Inserisci secondo numero: "))
+                risultato = a + b
+                valori_inseriti = f"{a} + {b}"
+        
+            case 2: # Sottrazione
+                op_nome = "Sottrazione"
+                print(op_nome)
+                a = float(input("Inserisci primo numero: "))
+                b = float(input("Inserisci secondo numero: "))
+                risultato = a - b
+                valori_inseriti = f"{a} - {b}"
+        
+            case 3: # Moltiplicazione
+                op_nome = "Moltiplicazione"
+                print(op_nome)
+                a = float(input("Inserisci primo numero: "))
+                b = float(input("Inserisci secondo numero: "))
+                risultato = a * b
+                valori_inseriti = f"{a} * {b}"
+        
+            case 4: # Divisione e controllo divisione per zerp
+                op_nome = "Divisione"
+                print(op_nome)
+                a = float(input("Inserisci primo numero: "))
+                b = float(input("Inserisci secondo numero: "))
+                if b == 0:
+                    print("Errore: divisione per zero!")
+                    continue
+                risultato = a / b
+                valori_inseriti = f"{a} / {b}"
+        
+            case 5: # Potenza
+                op_nome = "Potenza"
+                print(op_nome)
+                a = float(input("Inserisci base: "))
+                b = float(input("Inserisci esponente: "))
+                risultato = a ** b
+                valori_inseriti = f"{a} ^ {b}"
+        
+            case 6: # Radice quadrata (Max 1 elemento)
+                op_nome = "Radice quadrata"
+                print(op_nome)
+                a = float(input("Inserisci numero: "))
+                if a < 0:
+                    print("Errore: radice di numero negativo!")
+                    continue
+                risultato = a ** 0.5
+                valori_inseriti = f"√{a}"
+        
+            case 7: # Percentuale (Max 2 elementi)
+                op_nome = "Percentuale"
+                print(op_nome)
+                a = float(input("Inserisci il valore: "))
+                b = float(input("Inserisci la percentuale (%): "))
+                risultato = a * (b / 100)
+                valori_inseriti = f"{a} * {b}%"
+            
+            case _:
+                print("Scelta non valida!")
+                continue
+        
+        # Salvataggio e check
+        print(f"Risultato: {risultato}")
+        
+        # Aggiungo l'operazione alla cronologia dell'utente
+        for user in users:
+            if user[0] == current_user:
+                user[2].append([op_nome, valori_inseriti, risultato])
+                break
+        
+        session_operations += 1 # Incremento contatore sessione
+        print(f"Operazioni effettuate: {session_operations}/5")
+        
+        # Dopo 5 operazioni esce eritorna al menu permettendo il login
+        if session_operations >= 5:
+            print("\n Hai raggiunto il limite di 5 operazioni!")
+            print(" Devi riloggarti per continuare.")
+            current_user = None
+            return # Esce dal menù calcolatrice
+
+# 8) Menu primario, gestisce senza login: registrazione, login, uscita. Con login: calcolatrice, visualizza dati, logout
+# Usa un ciclo while infinito e condizioni if per i vari menu
+
+def menu_principale():
+    global current_user
+    
+    while True: # Ciclo principale
+        if current_user is None: # Menu senza login
+            print("\n" + "-"*25)
+            print("--- MENU PRINCIPALE ---")
+            print("-"*25)
+            print("1. Registrazione")
+            print("2. Login")
+            print("3. Esci dal programma")
+            
+            scelta = input("\nScegli un'opzione: ")
+            
+            try:
+                scelta = int(scelta)# conversione fondamentale, senza da errore perchè vuole valore intero match
+            except ValueError:
+                print("Inserisci un numero valido!")
+                continue
+            
+            match scelta:
+                case 1:
+                    registra_utente()
+                case 2:
+                    login_utente()
+                case 3:
+                    print("Addios!")
+                    break
+                case 4: 
+                    print("Scelta non valida!")
+        
+        else: # Menu post login
+            print("\n" + "-"*25)
+            print(f"--- MENU' UTENTE di: {current_user} ---")
+            print("-"*25)
+            print("1) Calcolatrice")
+            print("2) Visualizza dati utente")
+            print("3) Esci dall'account")
+            
+            scelta = input("\nScegli un'opzione: ")
+            
+            try:
+                scelta = int(scelta)
+            except ValueError:
+                print("Inserisci un numero valido!")
+                continue
+            
+            match scelta:
+                case 1:
+                    menu_calcolatrice()
+                case 2:
+                    visualizza_dati_utente()
+                case 3:
+                    print("Logout effettuato. Tanti saluti!")
+                    current_user = None
+                case _:
+                    print("Scelta non valida!")
+
+# Avvio del programma:
+menu_principale()

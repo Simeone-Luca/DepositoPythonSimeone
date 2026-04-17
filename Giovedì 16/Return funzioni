@@ -1,0 +1,4 @@
+def q(n):
+    return n * n
+r = q(4)
+print(r)

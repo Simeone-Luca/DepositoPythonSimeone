@@ -1,0 +1,20 @@
+import random
+
+numero_segreto = random.randint(1, 100) # il numero da indovinare verrà generato tramite randint, che comprende già 1 e 100 (a e b)
+print("=== Indovina il numero per vincere 1.000.000 di euro in monetine da 1 centesimo! ===")
+print("=== INIZIO ===")
+
+while True:
+    
+    numero_utente = int(input("\nInserisci il numero da indovinare: "))
+    
+    if numero_utente > numero_segreto:
+        print("\nIl numero inserito è maggiore. Riprova!")
+        
+    elif numero_utente < numero_segreto:
+        print("\nIl numero inserito è minore. Riprova!")
+        
+    else:
+        print("\n=== Numero corretto! Hai vinto 1.000.000 di euro in monetine da 1 centesimo! COMPLIMENTI !!! ===")
+        break
+    
