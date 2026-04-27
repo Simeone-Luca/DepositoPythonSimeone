@@ -1,0 +1,15 @@
+class Convertitore: #Definizione
+    
+    @staticmethod #Decoratore che rende il metodo statico senza la necessità di avere istanze
+    def euro_in_dollari(importo_euro): #Metodo statico che accetta l'importo in euro
+        return importo_euro * 1.08 #moltiplica per il tasso fisso euro verso dollaro
+    
+    @staticmethod #decoratore pt. 2    
+    def km_in_miglia(distanza_km): #Metodo statico che accetta la distanza in km
+        return distanza_km * 0.621371 #Moltiplico per il fattore fisso km miglia
+
+dollari = Convertitore.euro_in_dollari(10088) #richiamo la classe così evito la creazione di oggetti
+print(f"\n 10088 euro = {dollari:.2f} dollari") #Stampo il risultato con 2 decimali
+
+miglia = Convertitore.km_in_miglia(80)#richiamo pt. 2
+print(f"\n 80 km = {miglia:.4f} miglia \n")#Stampo pt.2 ma con 4 decimali

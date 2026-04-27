@@ -1,0 +1,14 @@
+class Libro:
+    #Metodo che inizializza un nuovo oggetto libro
+    def __init__(self, titolo, autore, pagine):
+        #Attributi dell'oggettoche memorizzano le informazioni del libro
+        self.titolo = titolo
+        self.autore = autore
+        self.pagine = pagine
+
+    def descrizione(self): #Metodo che restituisce una descrizione del libro
+        return f"Il libro '{self.titolo}' è stato scritto da '{self.autore}' e ha {self.pagine} pagine."#Costruisce e stampa i dati del libro
+
+libro1 = Libro("L'arte della guerra", "Sun Tzu", 96)#stampa
+
+print(libro1.descrizione()) #stampa della descrizione del libro
