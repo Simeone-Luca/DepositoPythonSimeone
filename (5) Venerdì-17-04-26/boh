@@ -1,0 +1,8 @@
+class Veicolo:#in python dichiaro così la classe, definendola con il nome
+    
+def __init__(self, marca, modello): #(costruttore) swrve per inizializzare gli attributi della classe
+    self.marca = marca #attributo di istanza
+    self.modello = modello #attributo di istanza
+    
+def descrivi(self): #metodo che mostra le informazioni del veicolo
+    print(f"Veicolo: {self.marca} {self.modello}")
