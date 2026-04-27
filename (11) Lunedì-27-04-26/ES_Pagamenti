@@ -1,0 +1,118 @@
+import random 
+
+class MetodoPagamento: #definisco la classe base che funge da interfaccia comune per tutti i metodi di pagamento
+    def __init__(self, importo): #il costruttore riceve l'importo e lo salva come attributo d'istanza
+        self.importo = importo #assegno l'importo all'attributo dell'oggetto tramite self che rappresenta l'istanza corrente
+
+    def effettua_pagamento(self): #dichiaro il metodo polimorfico che ogni sottoclasse dovrà sovrascrivere con la propria logica
+        raise NotImplementedError("Ogni sottoclasse deve implementare effettua_pagamento") #creo un'eccezione se la sottoclasse non implementa il metodo obbligando a rispettare l'interfaccia
+
+class CartaDiCredito(MetodoPagamento): #eredito da MetodoPagamento tramite la sintassi classe(classe_base) acquisendo tutti i suoi attributi e metodi
+    PERCENTUALE = 2 #definisco la percentuale come attributo di classe condiviso da tutte le istanze di CartaDiCredito
+
+    def __init__(self, importo): #il costruttore della sottoclasse riceve l'importo
+        super().__init__(importo) #chiamo il costruttore della classe base tramite super() per inizializzare self.importo evitando duplicazione di codice
+
+    def effettua_pagamento(self): #sovrascrivo il metodo polimorfico con il comportamento specifico della carta di credito
+        tasso = self.importo * self.PERCENTUALE / 100 #calcolo il tasso d'interesse come percentuale dell'importo usando la regola del rapporto
+        totale = self.importo + tasso #sommo importo e tasso per ottenere il totale finale da pagare
+        print(f"\nStai pagando {self.importo} con la percentuale del {self.PERCENTUALE}") 
+        return totale #restituisco il totale così il gestore può usarlo senza ricalcolarlo
+
+class PayPal(MetodoPagamento): #eredito da MetodoPagamento per implementare il comportamento specifico di PayPal
+    PERCENTUALE = 10 #PayPal ha una percentuale più alta rispetto agli altri metodi quindi la definisco come costante di classe
+
+    def __init__(self, importo): #costruttore che delega l'inizializzazione dell'importo alla classe base
+        super().__init__(importo) #uso super() per chiamare MetodoPagamento.__init__ e impostare self.importo
+
+    def effettua_pagamento(self): #implemento il metodo polimorfico specifico per PayPal sovrascrivendo quello della classe base
+        tasso = self.importo * self.PERCENTUALE / 100 #calcolo il tasso d'interesse moltiplicando l'importo per la percentuale e dividendo per 100
+        totale = self.importo + tasso #calcolo il totale aggiungendo il tasso all'importo originale
+        print(f"\nStai pagando {self.importo} con la percentuale del {self.PERCENTUALE}")
+        return totale #restituisco il totale calcolato al chiamante
+
+class BonificoBancario(MetodoPagamento): #eredito da MetodoPagamento per rappresentare il bonifico bancario come terzo metodo di pagamento
+    PERCENTUALE = 2 #la percentuale è uguale alla carta di credito ma si tratta di un metodo completamente diverso
+
+    def __init__(self, importo): #costruttore della sottoclasse che chiama il costruttore del genitore
+        super().__init__(importo) #super() mi permette di riusare il codice di inizializzazione della classe base senza riscriverlo
+
+    def effettua_pagamento(self): #sovrascrivo il metodo polimorfico con la logica specifica del bonifico bancario
+        tasso = self.importo * self.PERCENTUALE / 100 #calcolo il tasso applicando solo due percento come specificato nei requisiti
+        totale = self.importo + tasso #ottengo il totale sommando importo e tasso d'interesse
+        
+        print(f"\nStai pagando {self.importo} con la percentuale del {self.PERCENTUALE} (2% per il bonifico)")
+        return totale #restituisco il totale al chiamante
+
+class GestorePagamenti: #definisco il gestore che lavora con qualsiasi MetodoPagamento grazie al polimorfismo
+    def paga(self, metodo_pagamento): #il metodo accetta un oggetto di qualsiasi sottoclasse di MetodoPagamento senza sapere il tipo specifico
+        totale = metodo_pagamento.effettua_pagamento() #invoco il metodo polimorfico sull'oggetto ricevuto Python eseguirà la versione giusta in base al tipo reale dell'oggetto
+        nome_metodo = type(metodo_pagamento).__name__ #ricavo il nome della classe reale dell'oggetto tramite type() che restituisce la classe e __name__ che ne estrae il nome come stringa
+        importo_originale = metodo_pagamento.importo #accedo all'attributo importo definito nella classe base
+        tasso = totale - importo_originale #calcolo il tasso sottraendo l'importo originale dal totale per mostrarlo separatamente
+        
+        print(f"GestorePagamenti tramite {nome_metodo}: paghi {importo_originale} + {tasso:.2f} di tasso d'interesse\n")
+
+class Utente: #definisco la classe Utente per il flusso extra con validazione del credito
+    def __init__(self, nome): #il costruttore riceve solo il nome perché il credito verrà generato casualmente
+        self.nome = nome #salvo il nome dell'utente come attributo d'istanza
+        self.credito = random.randint(1, 100) #genero un credito casuale tra 1 e 100 usando randint che restituisce un intero inclusi gli estremi
+        
+        print(f"\n{self.nome} ha un credito di {self.credito} monete") #informo subito l'utente del suo credito casuale
+
+    def scegli_metodo(self, scelta, importo): #metodo che gestisce diversi tipi di metodi in base alla scelta ricevuta
+        if scelta == 1: 
+            return CartaDiCredito(importo) 
+        elif scelta == 2: 
+            return PayPal(importo)
+        elif scelta == 3: 
+            return BonificoBancario(importo) 
+        else: #caso in cui la scelta non sia valida
+            raise ValueError("\nScelta non valida inserire 1 2 o 3\n") 
+        
+    def puo_pagare(self, importo): #metodo che verifica se l'utente ha credito sufficiente restituendo un booleano
+        return self.credito >= importo #il confronto restituisce True se il credito è maggiore o uguale all'importo altrimenti False
+
+    def addebita(self, importo): #metodo che scala il credito dell'utente dopo un pagamento andato a buon fine
+        self.credito -= importo #uso l'operatore -= che equivale a self.credito = self.credito - importo per aggiornare il saldo
+
+
+if __name__ == "__main__": #questo pattern fa sì che il codice seguente venga eseguito solo quando il file è avviato direttamente e non quando viene importato come modulo in un altro file
+
+    print("\n----- FLUSSO BASE -----\n") #separatore visivo per distinguere i due flussi nell'output
+    importo_base = 20 #definisco l'importo di esempio per il flusso base
+
+    gestore = GestorePagamenti() #istanzio il gestore dei pagamenti che userò per entrambi i flussi
+
+    paypal = PayPal(importo_base) #creo un oggetto PayPal con l'importo base dimostrando l'istanziazione della sottoclasse
+    gestore.paga(paypal) #chiamo il metodo polimorfico del gestore che invocherà effettua_pagamento() sul tipo reale dell'oggetto
+
+    carta = CartaDiCredito(importo_base) #creo un oggetto CartaDiCredito per mostrare un altro metodo di pagamento
+    gestore.paga(carta) #il gestore usa lo stesso metodo paga() ma Python eseguirà la versione di CartaDiCredito grazie al polimorfismo
+
+    bonifico = BonificoBancario(importo_base) #creo un oggetto BonificoBancario per completare la dimostrazione dei tre metodi
+    gestore.paga(bonifico) #anche qui il gestore usa lo stesso metodo ma viene eseguita la versione specifica di BonificoBancario
+
+    print("\n--- FLUSSO CON UTENTE (EXTRA) -----") #separatore per il flusso extra con l'utente
+    nome_utente = input("\nInserisci il tuo nome: ") #chiedo il nome all'utente tramite input() che legge una stringa dalla tastiera
+    utente = Utente(nome_utente) #istanzio l'utente con il nome inserito il costruttore genererà automaticamente il credito casuale
+
+    print("\nScegli il metodo di pagamento:\n") #mostro il menu delle opzioni disponibili
+    print("1 - Carta di credito (2%)") #opzione 1 con percentuale indicata
+    print("2 - PayPal (10%)") #opzione 2 con percentuale indicata
+    print("3 - Bonifico bancario (2%)") #opzione 3 con percentuale indicata
+    scelta = int(input("\nInserisci 1 2 o 3: ")) #leggo la scelta e la converto in intero con int() perché input() restituisce sempre una stringa
+
+    importo_richiesto = int(input("\nInserisci l'importo da pagare: ")) #leggo l'importo e lo converto in intero per coerenza con il credito
+
+    if utente.puo_pagare(importo_richiesto): #verifico se l'utente ha credito sufficiente prima di procedere con il pagamento
+        metodo = utente.scegli_metodo(scelta, importo_richiesto) #ottengo l'istanza del metodo scelto già configurata con l'importo
+        totale = metodo.effettua_pagamento() #chiamo il metodo polimorfico e salvo il totale comprensivo di tasso
+        tasso = totale - importo_richiesto #ricalcolo il tasso per usarlo nel messaggio finale
+        
+        utente.addebita(importo_richiesto) #scala il credito dell'utente dell'importo pagato escludendo il tasso che è un costo aggiuntivo
+        
+        print(f"{utente.nome} ha pagato {importo_richiesto} + {tasso:.2f} per il tasso d'interesse") #messaggio finale con nome utente importo e tasso separati
+        print(f"\nCredito rimanente di {utente.nome}: {utente.credito}\n") #mostro il saldo aggiornato dopo il pagamento
+    else: #entro in questa eccezione se il credito è insufficiente
+        print(f"\nNo. {utente.nome} non ha i soldi. Riprova! Uscita in corso...\n") #messaggio di rifiuto come specificato nei requisiti dell'esercizio e stop
