@@ -1,0 +1,86 @@
+class Prodotto: #Classe base con attributi comuni a tutti i prodotti
+    def __init__(self, nome, costo_produzione, prezzo_vendita):
+        self.nome = nome #Nome del prodotto
+        self.costo_produzione = costo_produzione #Costo per produrre una unità
+        self.prezzo_vendita = prezzo_vendita #Prezzo di vendita al pubblico
+
+    def calcola_profitto(self): #Metodo di base in cui viene calcolata la differenza tra vendita e costo
+        return self.prezzo_vendita - self.costo_produzione
+
+
+class Elettronica(Prodotto):#Classe figlia che eredita da Prodotto
+    def __init__(self, nome, costo_produzione, prezzo_vendita, garanzia):
+        super().__init__(nome, costo_produzione, prezzo_vendita) #Richiama il costruttore della classe base
+        self.garanzia = garanzia #Attributo specifico  anni di garanzia
+
+    def calcola_profitto(self): #Override che aggiunge info garanzia al profitto
+        profitto = super().calcola_profitto() #Riusa il calcolo della classe base
+        print(f"  [Garanzia inclusa: {self.garanzia} anni]")
+        return profitto
+
+
+class Abbigliamento(Prodotto):#Seconda classe figlia con caretteristiche simili alla classe elettroinica                                
+    def __init__(self, nome, costo_produzione, prezzo_vendita, materiale):
+        super().__init__(nome, costo_produzione, prezzo_vendita)       
+        self.materiale = materiale                                     
+
+    def calcola_profitto(self):                                        
+        profitto = super().calcola_profitto()                          
+        print(f"  [Materiale: {self.materiale}]")
+        return profitto
+
+
+class Fabbrica: #Classe che gestisce inventario e vendite
+    def __init__(self):
+        self.inventario = {} #Dizionario {prodotto: quantità}
+
+    def aggiungi_prodotto(self, prodotto, quantita): #Aggiunge o incrementa un prodotto in inventario
+        if prodotto in self.inventario: #Se il prodotto esiste già in inventario incrementa la quantità esistente
+            self.inventario[prodotto] += quantita
+        else:#altrimenti aggiunge il prodotto con la quantità iniziale
+            self.inventario[prodotto] = quantita                       
+        print(f"Aggiunto: {quantita}x {prodotto.nome} → "
+              f"Totale in magazzino: {self.inventario[prodotto]}")
+
+    def vendi_prodotto(self, prodotto, quantita): #Vende un prodotto e mostra il profitto
+        if prodotto not in self.inventario: #Controlla se il prodotto esiste
+            print(f"Errore: {prodotto.nome} non trovato in inventario.")
+            return
+        if self.inventario[prodotto] < quantita: #Controlla se c'è abbastanza scorta
+            print(f"Errore: scorte insufficienti per {prodotto.nome} "
+                  f"(disponibili: {self.inventario[prodotto]}).")
+            return
+        self.inventario[prodotto] -= quantita #Decrementa la quantità vendyta
+        profitto_totale = prodotto.calcola_profitto() * quantita #Calcola profitto per le unità vendute
+        print(f"Venduto: {quantita}x {prodotto.nome} > "
+              f"Profitto: €{profitto_totale:.2f} | "
+              f"Rimanenti: {self.inventario[prodotto]}")
+
+    def reso_prodotto(self, prodotto, quantita): #Gestisce il reso e reintegra l'inventario
+        if prodotto not in self.inventario: #Controlla se il prodotto esiste
+            print(f"Errore: {prodotto.nome} non trovato in inventario.")
+            return
+        self.inventario[prodotto] += quantita #Reintegra la quantità restituita
+        print(f"Reso accettato: {quantita}x {prodotto.nome} > "
+              f"Totale in magazzino: {self.inventario[prodotto]}")
+
+
+#creazioni dei prodotti
+
+smartphone = Elettronica("Smartphone", 300, 799, 2) #2 anni garanzia
+maglietta  = Abbigliamento("Maglietta", 5, 29.99, "Cotone") #abbigliamento in cotone
+
+fabbrica = Fabbrica() #Creazione dell'istanza fabbrica
+
+print("─── AGGIUNTA PRODOTTI ───────────────────────────")#aggiunta di smartphone e magliette all'inventario
+fabbrica.aggiungi_prodotto(smartphone, 10)                             
+fabbrica.aggiungi_prodotto(maglietta, 50)                              
+
+print("\n─── VENDITE ─────────────────────────────────────")#vendita dei prodotti
+fabbrica.vendi_prodotto(smartphone, 3)                                
+fabbrica.vendi_prodotto(maglietta, 5)                                  
+fabbrica.vendi_prodotto(smartphone, 20)                                
+
+print("\n─── RESI ────────────────────────────────────────")
+fabbrica.reso_prodotto(smartphone, 1)#Restituisce 1 smartphone
+fabbrica.reso_prodotto(maglietta, 2)#Restituisce 2 magliette
