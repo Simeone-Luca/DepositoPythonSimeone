@@ -1,0 +1,63 @@
+from abc import ABC, abstractmethod #importo ABC e abstractmethod dal modulo abc che sta per "Abstract Base Class" 
+
+class Impiegato(ABC): #eredito da ABC per rendere questa classe astratta impedendo che venga istanziata direttamente
+    def __init__(self, nome, cognome, stipendio_base): #il costruttore definisce l'interfaccia comune a tutti gli impiegati indipendentemente dal ruolo
+        self._nome = nome
+        self._cognome = cognome
+        self._stipendio_base = stipendio_base 
+
+    @abstractmethod #questo decoratore rende il metodo astratto obbligando ogni sottoclasse concreta a fornire la propria implementazione altrimenti Python lancia TypeError all'istanziazione
+    def calcola_stipendio(self): #dichiaro solo la firma del metodo senza corpo utile perché ogni ruolo ha una logica di calcolo diversa e pass servirà solo sintatticamente
+        pass
+    
+    @property #trasformo il getter in una property per accedere all'attributo senza parentesi rispettando lo stile Pythonico con getter per il nome protetto
+    def nome(self): 
+        return self._nome
+
+    @property #applicato anche al cognome per uniformità nell'interfaccia della classe con getter per il cognome protetto
+    def cognome(self): 
+        return self._cognome
+
+    @property #getter per lo stipendio base utile alle sottoclassi che devono accedervi nel calcolo
+    def stipendio_base(self): 
+        return self._stipendio_base
+
+
+class ImpiegatoFisso(Impiegato): #eredito da Impiegato e implemento tutti i metodi astratti rendendo questa classe concreta e istanziabile
+    def __init__(self, nome, cognome, stipendio_base): #il costruttore non aggiunge attributi perché l'impiegato fisso non ha variabili aggiuntive
+        super().__init__(nome, cognome, stipendio_base) #delego interamente l'inizializzazione alla classe base tramite super() evitando duplicazione di codice
+
+    def calcola_stipendio(self): #implemento il metodo astratto obbligatorio con la logica specifica dell'impiegato fisso
+        return self._stipendio_base 
+
+class ImpiegatoAProvvigione(Impiegato): #seconda sottoclasse concreta con logica di calcolo diversa che dimostra il polimorfismo
+    def __init__(self, nome, cognome, stipendio_base, vendite, percentuale_bonus): #il costruttore aggiunge vendite e percentuale_bonus come attributi specifici di questo ruolo
+        super().__init__(nome, cognome, stipendio_base) #inizializzo gli attributi comuni tramite super() e poi aggiungo quelli specifici
+        self._vendite = vendite 
+        self._percentuale_bonus = percentuale_bonus 
+
+    def calcola_stipendio(self): #implemento il metodo astratto con la logica del calcolo a provvigione
+        bonus = self._vendite * (self._percentuale_bonus / 100) #calcolo il bonus moltiplicando le vendite per la percentuale divisa per 100 per convertirla in decimale
+        return self._stipendio_base + bonus 
+
+
+def stampa_info_impiegato(impiegato): #definisco una funzione polimorfica che accetta qualsiasi oggetto che erediti da Impiegato senza conoscerne il tipo specifico
+    stipendio = impiegato.calcola_stipendio() #invoco il metodo polimorfico Python esegue la versione corretta in base al tipo reale dell'oggetto passato
+    tipo = type(impiegato).__name__ #ricavo il nome della classe reale tramite type() e __name__ per mostrare il ruolo dell'impiegato nell'output
+    
+    print(f"\nNome: {impiegato.nome} {impiegato.cognome}")
+    print(f"Ruolo: {tipo}")
+    print(f"Stipendio mensile: {stipendio:.2f} euro\n") #uso il format specifier :.2f per mostrare sempre due cifre decimali indipendentemente dal valore calcolato
+    print("-" * 32) 
+
+if __name__ == "__main__": #il codice in questo blocco viene eseguito solo se il file è avviato direttamente e non importato come modulo
+    impiegati = [ #creo una lista di oggetti
+        ImpiegatoFisso("Luca", "Simeone", 5500),
+        ImpiegatoFisso("Laura", "Pausini", 4400),
+        ImpiegatoAProvvigione("Giovanni", "Mucciaccia", 1500, vendite=8000, percentuale_bonus=10),
+        ImpiegatoAProvvigione("Tony", "Pitony", 1200, vendite=12000, percentuale_bonus=15),
+    ]
+
+    print("\n------ GESTIONE IMPIEGATI ------\n")
+    for impiegato in impiegati: #itero sulla lista eterogenea chiamando la stessa funzione su tipi diversi questo è il polimorfismo applicato a una collezione
+        stampa_info_impiegato(impiegato)

@@ -1,0 +1,114 @@
+from abc import ABC, abstractmethod 
+class VeicoloTrasporto(ABC): #eredito da ABC per rendere questa classe astratta e obbligare le sottoclassi a implementare i metodi astratti
+    def __init__(self, targa, peso_massimo):
+        self._targa = targa
+        self._peso_massimo = peso_massimo
+        self._carico_attuale = 0 #inizializzo sempre a 0 perché un veicolo appena creato è sempre scarico
+
+    def carica(self, peso):
+        if self._carico_attuale + peso <= self._peso_massimo: #verifico che la somma tra carico attuale e nuovo peso non superi la capacità massima
+            self._carico_attuale += peso
+            print(f"[+] Caricati {peso} kg su {self._targa}. Carico attuale: {self._carico_attuale} kg") #badge solo visivo per mantenere ordine nel terminale
+        else:
+            spazio = self._peso_massimo - self._carico_attuale #calcolo lo spazio rimanente per mostrarlo nel messaggio di errore
+            print(f"[X] Impossibile caricare {peso} kg su {self._targa}. Spazio disponibile: {spazio} kg")
+
+    def scarica(self):#funzione per scaricare e inizializzare il carico
+        self._carico_attuale = 0
+        print(f"[-] Veicolo {self._targa} scaricato")
+
+    @abstractmethod #decoratore
+    def costo_manutenzione(self):
+        pass
+
+    @property
+    def targa(self):
+        return self._targa
+
+    @property
+    def carico_attuale(self):
+        return self._carico_attuale
+
+
+class Camion(VeicoloTrasporto):
+    def __init__(self, targa, peso_massimo, numero_assi):
+        super().__init__(targa, peso_massimo) #delego l'inizializzazione degli attributi comuni alla classe base
+        self._numero_assi = numero_assi
+
+    def costo_manutenzione(self): #implemento il metodo astratto con la regola specifica del camion
+        return 100 * self._numero_assi + 1 * self._peso_massimo #100 euro per asse più 1 euro per kg di capacità massima
+
+
+class Furgone(VeicoloTrasporto):
+    def __init__(self, targa, peso_massimo, alimentazione):
+        super().__init__(targa, peso_massimo)
+        self._alimentazione = alimentazione.lower() #per normalizzare la stringa in minuscolo
+
+    def costo_manutenzione(self):
+        return 200 if self._alimentazione == "elettrico" else 150 #restituisce 200 per elettrico e 150 per qualsiasi altro tipo di alimentazione
+
+
+class Motocarro(VeicoloTrasporto):
+    def __init__(self, targa, peso_massimo, anni_servizio):
+        super().__init__(targa, peso_massimo)
+        self._anni_servizio = anni_servizio
+
+    def costo_manutenzione(self):
+        return 50 * self._anni_servizio 
+
+class GestoreFlotta:
+    def __init__(self):
+        self._veicoli = []
+
+    def aggiungi_veicolo(self, veicolo):
+        self._veicoli.append(veicolo)
+        print(f"[+] Veicolo {veicolo.targa} aggiunto alla flotta")
+
+    def rimuovi_veicolo(self, targa):
+        for veicolo in self._veicoli:
+            if veicolo.targa == targa:
+                self._veicoli.remove(veicolo) #remove() cerca e rimuove la prima occorrenza dell'oggetto nella lista
+                print(f"[-] Veicolo {targa} rimosso dalla flotta")
+                return
+        print(f"[?] Veicolo {targa} non trovato nella flotta")
+
+    def costo_totale_manutenzione(self):
+        totale = sum(v.costo_manutenzione() for v in self._veicoli) #sum jtera sui veicoli chiamando costo_manutenzione() su ciascuno questo è polimorfismo perché ogni oggetto esegue la sua versione del metodo
+        return totale
+
+    def stampa_veicoli(self):
+        if not self._veicoli:
+            print("[0] Nessun veicolo in flotta")
+            return
+        print("----- FLOTTA VEICOLI -----")
+        for veicolo in self._veicoli:
+            tipo = type(veicolo).__name__ #type() restituisce la classe reale e __name__ ne estrae il nome come stringa senza dover fare isinstance per ogni tipo
+            print(f"  [!] Targa: {veicolo.targa} | Tipo: {tipo} | Carico: {veicolo.carico_attuale} kg | Manutenzione: {veicolo.costo_manutenzione()} euro")
+
+
+if __name__ == "__main__":
+    flotta = GestoreFlotta()
+    flotta.aggiungi_veicolo(Camion("AB123CD", 15000, numero_assi=4))
+    flotta.aggiungi_veicolo(Camion("FF006JH", 20000, numero_assi=5))
+    flotta.aggiungi_veicolo(Furgone("LJ709LL", 3500, alimentazione="elettrico"))
+    flotta.aggiungi_veicolo(Furgone("MN011LP", 3500, alimentazione="diesel"))
+    flotta.aggiungi_veicolo(Motocarro("QW995RT", 500, anni_servizio=8))
+
+    print("\n----- CARICAMENTO MERCI -----")
+    flotta._veicoli[0].carica(10000)
+    flotta._veicoli[0].carica(8000) #tentativo di superare la capacità per mostrare la gestione dell'errore
+    flotta._veicoli[2].carica(3000)
+    flotta._veicoli[4].carica(300)
+
+    print("\n")
+    flotta.stampa_veicoli()
+
+    print(f"\n[>] Costo totale manutenzione flotta: {flotta.costo_totale_manutenzione()} euro")
+
+    print("\n----- RIMOZIONE VEICOLO -----")
+    flotta.rimuovi_veicolo("WW999PP")
+    flotta.rimuovi_veicolo("XX000XX") #targa inesistente per mostrare la gestione del caso
+
+    print(f"\n[>] Costo manutenzione dopo rimozione: {flotta.costo_totale_manutenzione()} euro")
+    
+    #scusatemi se non ho commentanto come faccio solitamente, ma sono abbastanza cotto per oggi ahahah
