@@ -1,0 +1,214 @@
+import csv #importo il modulo csv per leggere e scrivere file csv
+import os #importo os per verificare l'esistenza dei file sul filesystem
+
+#definisco il percorso dei file che userò nel programma come costanti globali
+FILE_PRENOTAZIONI = "prenotazioni.csv"
+FILE_RICEVUTA_ACQUISTO = "ricevuta_acquisto.txt"
+FILE_RICEVUTA_ORDINE = "ricevuta_ordine.txt"
+
+#definisco i campi come lista così posso riutilizzarli in scrittura e lettura
+CAMPI = ["id", "nome", "cognome", "servizio", "data", "prezzo", "stato"]
+
+class Utente:
+    def __init__(self, nome, cognome): #il costruttore riceve nomee e cognome e li assegna all'istanza
+        self.nome = nome
+        self.cognome = cognome
+
+    def __str__(self): #definisco la rappresentazione stringa dell'utente per stamparla facilmente
+        return f"{self.nome} {self.cognome}"
+
+
+#funzioni file
+def inizializza_csv(): #creo il file csv con l'intestazione solo se non esiste già
+    if not os.path.exists(FILE_PRENOTAZIONI): #os.path.exists restituisce True se il percorso esiste
+        with open(FILE_PRENOTAZIONI, "w", newline="", encoding="utf-8") as f: #apro in modalità w che crea o sovrascrive il file
+            writer = csv.DictWriter(f, fieldnames=CAMPI) #dic(k)twriter mi permette di scrivere dizionari usando i nomi dei campi come chiavi
+            writer.writeheader() #writeheader scrive la prima riga con i nomi dei campi
+
+
+def leggi_prenotazioni(): #leggo tutte le righe del csv e le restituisco come lista di dizionari
+    prenotazioni = []
+    try:
+        with open(FILE_PRENOTAZIONI, "r", encoding="utf-8") as f: #apro in modalità r che è sola lettura
+            reader = csv.DictReader(f) #dictreader legge ogni riga come dizionario usando la prrima riga come chiavi
+            for riga in reader:
+                prenotazioni.append(dict(riga)) #converto ogni riga in un dizionario normale e lo aggiungo alla lista
+    except FileNotFoundError: #debug per il caso in cui il file non esiste ancora
+        pass #restituisco semplicemente una lista senza niente
+    return prenotazioni
+
+
+def salva_prenotazioni(prenotazioni): #riscrivo l'intero csv con la lista aggiornata di dizionari
+    with open(FILE_PRENOTAZIONI, "w", newline="", encoding="utf-8") as f: #uso w per sovrascrivere completamente il file
+        writer = csv.DictWriter(f, fieldnames=CAMPI)
+        writer.writeheader()
+        writer.writerows(prenotazioni) #writerows scrive tutte le righe in un colpo solo dalla lista
+
+
+def genera_id(prenotazioni): #genero un id numerico incrementale basandomi sul numero di prenotazioni esistenti
+    if not prenotazioni: #se la lista è vuota parto da 1
+        return "1"
+    return str(int(prenotazioni[-1]["id"]) + 1) #prendo l'ultimo id e lo converto in intero e aggiungo 1
+
+
+#funzioni di prenotazine e ricevuta
+def crea_prenotazione(utente): #creo una nuova prenotazione raccogliendo i dati dall'utente
+    print(f"\n||||||||||| Nuova prenotazione per {utente} |||||||||||")
+    servizio = input("Servizio (es. Hotel, Volo, Treno): ").strip()
+    data = input("Data (gg/mm/aaaa): ").strip()
+    prezzo = input("Prezzo (es. 120.50): ").strip()
+
+    prenotazioni = leggi_prenotazioni() #leggo le prenotazioni esistenti per generare l'id corretto
+    nuova = { #creo il dizionario della nuova prenotazione con tutti i campi richiesti
+        "id": genera_id(prenotazioni),
+        "nome": utente.nome,
+        "cognome": utente.cognome,
+        "servizio": servizio,
+        "data": data,
+        "prezzo": prezzo,
+        "stato": "confermata"
+    }
+    prenotazioni.append(nuova) #aggiungo la nuova prenotazione alla lista in memoria
+    salva_prenotazioni(prenotazioni) #salvo la lista aggiornata sul file
+    print(f"\nPrenotazione creata con ID: {nuova['id']}")
+
+
+def modifica_prenotazione(utente): #modifico una prenotazione esistente cercandola per id
+    print(f"\n||||||||||| Modifica prenotazione per {utente} |||||||||||")
+    visualizza_prenotazioni(utente) #mostro prima le prenotazioni dell'utente per orientarsi
+
+    id_cercato = input("Inserisci l'ID da modificare: ").strip()
+    prenotazioni = leggi_prenotazioni()
+
+    trovata = False
+    for p in prenotazioni: #itero sulla lista per trovare la prenotazione con l'id cercato
+        if p["id"] == id_cercato and p["nome"] == utente.nome and p["cognome"] == utente.cognome:
+            print("Cosa vuoi modificare?")
+            print("1- Servizio")
+            print("2- Data")
+            print("3- Prezzo")
+            print("4- Stato")
+            scelta = input("Scelta: ").strip()
+            match scelta: #uso match-case per gestire la scelta del campo da modificare
+                case "1":
+                    p["servizio"] = input("Nuovo servizio: ").strip()
+                case "2":
+                    p["data"] = input("Nuova data: ").strip()
+                case "3":
+                    p["prezzo"] = input("Nuovo prezzo: ").strip()
+                case "4":
+                    p["stato"] = input("Nuovo stato (confermata/annullata/in attesa): ").strip()
+                case _: #il caso default cattura qualsiasi valore non previsto
+                    print("Scelta non valida")
+                    return
+            trovata = True
+            salva_prenotazioni(prenotazioni) #salvo dopo la modifica in memoria
+            print("Prenotazione aggiornata")
+            break
+
+    if not trovata:
+        print("Prenotazione non trovata")
+
+
+def visualizza_prenotazioni(utente): #mostro a video le prenotazioni dell'utente corrente
+    print(f"\n||||||||||| Prenotazioni di {utente} |||||||||||")
+    prenotazioni = leggi_prenotazioni()
+    trovate = [p for p in prenotazioni if p["nome"] == utente.nome and p["cognome"] == utente.cognome] #filtro per utente con una list comprehension
+
+    if not trovate:
+        print("Nessuna prenotazione trovata.")
+        return
+
+    for p in trovate:
+        print(f"  ID: {p['id']} | Servizio: {p['servizio']} | Data: {p['data']} | Prezzo: €{p['prezzo']} | Stato: {p['stato']}")
+
+
+def rilascia_ricevuta_acquisto(utente): #genero la ricevuta di acquisto su file txt per la prenotazione scelta
+    print(f"\n||||||||||| Ricevuta di acquisto per {utente} |||||||||||")
+    visualizza_prenotazioni(utente)
+    id_cercato = input("ID della prenotazione: ").strip()
+    prenotazioni = leggi_prenotazioni()
+
+    for p in prenotazioni:
+        if p["id"] == id_cercato and p["nome"] == utente.nome and p["cognome"] == utente.cognome:
+            with open(FILE_RICEVUTA_ACQUISTO, "w", encoding="utf-8") as f: #apro in modalità w per creare o sovrascrivere la ricevuta
+                f.write("=" * 40 + "\n")
+                f.write("        RICEVUTA DI ACQUISTO\n")
+                f.write("=" * 40 + "\n")
+                f.write(f"Cliente: {p['nome']} {p['cognome']}\n")
+                f.write(f"Servizio: {p['servizio']}\n")
+                f.write(f"Data prenotazione: {p['data']}\n")
+                f.write(f"Importo pagato: €{p['prezzo']}\n")
+                f.write(f"Stato: {p['stato']}\n")
+                f.write("=" * 40 + "\n")
+                f.write("Grazie per l'acquisto!\n")
+            print(f"Ricevuta di acquisto salvata in '{FILE_RICEVUTA_ACQUISTO}'")
+            return
+
+    print("Prenotazione non trovata.")
+
+
+def rilascia_ricevuta_ordine(utente): #genero la ricevuta d'ordine su file txt separato con append per storico
+    print(f"\n||||||||||| Ricevuta d'ordine per {utente} |||||||||||")
+    visualizza_prenotazioni(utente)
+    id_cercato = input("ID della prenotazione: ").strip()
+    prenotazioni = leggi_prenotazioni()
+
+    for p in prenotazioni:
+        if p["id"] == id_cercato and p["nome"] == utente.nome and p["cognome"] == utente.cognome:
+            with open(FILE_RICEVUTA_ORDINE, "a", encoding="utf-8") as f: #uso la modalità a (append) per aggiungere senza cancellare le ricevute precedenti
+                f.write("=" * 40 + "\n")
+                f.write("        RICEVUTA D'ORDINE\n")
+                f.write("=" * 40 + "\n")
+                f.write(f"Ordine ID: {p['id']}\n")
+                f.write(f"Cliente: {p['nome']} {p['cognome']}\n")
+                f.write(f"Servizio ordinato: {p['servizio']}\n")
+                f.write(f"Data servizio: {p['data']}\n")
+                f.write(f"Totale ordine: €{p['prezzo']}\n")
+                f.write(f"Stato ordine: {p['stato']}\n")
+                f.write("=" * 40 + "\n\n")
+            print(f"Ricevuta d'ordine aggiunta in '{FILE_RICEVUTA_ORDINE}'")
+            return
+
+    print("Prenotazione non trovata.")
+
+
+#menù
+def menu(utente):
+    while True:
+        print(f"\n|||||||||| Gestore di prenotazioni ||||||||||")
+        print(f"Utente: {utente}")
+        print("1. Crea prenotazione")
+        print("2. Modifica prenotazione")
+        print("3. Visualizza prenotazioni")
+        print("4. Rilascia ricevuta di acquisto")
+        print("5. Rilascia ricevuta d'ordine")
+        print("0. Esci")
+
+        scelta = input("Scelta: ").strip()
+
+        match scelta: 
+            case "1":
+                crea_prenotazione(utente)
+            case "2":
+                modifica_prenotazione(utente)
+            case "3":
+                visualizza_prenotazioni(utente)
+            case "4":
+                rilascia_ricevuta_acquisto(utente)
+            case "5":
+                rilascia_ricevuta_ordine(utente)
+            case "0":
+                print("Arrivederci!")
+                break #break interrompe il ciclo while e termina il gestore
+            case _:
+                print("Scelta non valida.")
+
+#avvio
+if __name__ == "__main__": 
+    inizializza_csv() #mi assicuro che il file csv esista prima di qualsiasi operazione
+    print("||||||||||| Benvenuto nel gestore di prenotazioni |||||||||||")
+    nome = input("Inserisci il tuo nome: ").strip()
+    cognome = input("Inserisci il tuo cognome: ").strip()
+    utente = Utente(nome, cognome) #creo l'oggetto utente che rappresenta la sessione corrente
+    menu(utente) #passo il controllo al menu principale passando l'utente
