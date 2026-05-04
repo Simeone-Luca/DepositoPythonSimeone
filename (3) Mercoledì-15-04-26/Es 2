@@ -1,0 +1,19 @@
+n = input("Inserisci un numero: ")
+if n % 2 == 0: # controllo se è pari
+    print("Numero pari")
+else:
+    print("Numero dispari")
+    
+if n < 2:
+    print("Il numero non è primo")
+
+n_primo = True
+for i in range(2, int(n**0.5) +1):
+    if n % i == 0:
+        n_primo = False
+    break
+
+if n_primo:
+    print("Numero primo")
+else:
+    print("Numero non primo")

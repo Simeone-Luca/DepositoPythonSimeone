@@ -1,0 +1,5 @@
+def saluta(nome:str, messaggio="Ciao "):
+    print(f"{messaggio}{nome}!")
+    
+saluta("Luca")
+saluta("Gino", messaggio = "Bgiorno ")

@@ -1,0 +1,29 @@
+# Ciclo principale per permettere di ripetere il programma
+while True:
+    # Chiediamo all'utente di inserire un numero
+    print("\n" + "="*40)
+    numero = int(input("Inserisci un numero intero positivo per iniziare il conto alla rovescia: "))
+    
+    # Controllo di validità: il numero deve essere positivo o zero
+    if numero < 0:
+        print("Errore: per favore inserisci un numero positivo o zero.")
+        continue  # Torna all'inizio del ciclo while per chiedere di nuovo il numero
+    
+    print(f"\nInizio conto alla rovescia da {numero} fino a 0...\n")
+    
+    # Ciclo for per il conto alla rovescia (da numero fino a 0 incluso)
+    for i in range(numero, -1, -1):   # range(inizio, fine, passo)
+        print(i)
+    
+    print("\nConto alla rovescia terminato!\n")
+    
+    # Chiediamo all'utente se vuole ripetere il programma
+    risposta = input("Vuoi fare un altro conto alla rovescia? (s/n): ")
+    
+    # Condizione per uscire dal ciclo principale
+    if risposta == 'n' or risposta == 'no':
+        print("Grazie per aver usato il programma! Arrivederci.")
+        break  # Esce dal while True e termina il programma
+    elif risposta != 's' and risposta != 'si' and risposta != 'yes':
+        print("Risposta non valida. Il programma terminerà comunque.")
+        break

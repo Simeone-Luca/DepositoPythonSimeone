@@ -1,0 +1,23 @@
+# Chiediamo all'utente di inserire il numero N
+n = int(input("Inserisci un numero N: "))
+
+# Caso speciale in cui se N è minore di 0, non ha senso
+if n < 0:
+    print("Inserisci un numero positivo.")
+else:
+    print(f"Sequenza di Fibonacci fino a {n}:")
+
+    # Inizializziamo i primi due numeri della sequenza
+    a = 0
+    b = 1
+
+    # Ciclo while per generare la sequenza
+    while a <= n:
+        print(a, end=" ")   # stampiamo il numero corrente con spazio invece di andare a capo
+        
+        # Calcoliamo il prossimo numero
+        prossimo = a + b
+        
+        # Aggiorno le variabili per il prossimo giro
+        a = b
+        b = prossimo

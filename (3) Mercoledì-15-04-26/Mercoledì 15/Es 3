@@ -1,0 +1,5 @@
+while True: #ciclo sempre vero per raccogliere i numeri e controllare tramite for e 
+    n = int(input("\nInserisci n: "))
+    for numero in range(n, -1, -1):
+        print(numero, end=" ")
+    print()          # vai a capo dopo il conteggio
