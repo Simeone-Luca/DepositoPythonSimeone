@@ -1,5 +1,0 @@
-for i in range(8):
-    print("WOW")
-    if i == 3:
-        pass
-    print (i)
