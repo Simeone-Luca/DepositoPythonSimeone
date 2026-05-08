@@ -1,0 +1,39 @@
+import numpy as np #importo numpy con l'alias "np" che è la convenzione standard per abbreviare il nome del modulo
+import csv #importo csv per scrivere il file con il separatore virgola in modo corretto
+
+#1) Creo l'array
+array = np.arange(10, 50) #np.arange funziona come range ma restituisce un array NumPy il primo argomento è il valore iniziale incluso il secondo è il limite escluso quindi ottengo 10 11 12 ... 49
+
+print("Array creato:")
+print(array)
+
+#2) Tipo di dato originale
+print("\nTipo di dato originale:")
+print(array.dtype) #dtype è un attributo dell'array NumPy che descrive il tipo di ogni elemento per default arange con interi produce int64 cioè interi a 64 bit
+
+#3) Conversione a float 64
+array = array.astype(np.float64) #astype restituisce una copia dell'array con il nuovo tipo specificato senza modificare l'originale per questo riassegno alla stessa variabile float64 usa 64 bit per ogni numero decimale
+
+print("\nTipo di dato dopo la conversione:")
+print(array.dtype)
+
+#4) Forma dell'array
+print("\nForma dell'array (shape):")
+print(array.shape) #shape è una tupla che descrive le dimensioni dell'array un array monodimensionale di 40 elementi restituisce (40,) la virgola indica che è una tupla a un solo elemento
+
+#5) Salvo su file txt(Trofeo d'oro raggiunto)
+np.savetxt("array.txt", array, fmt="%.1f", header="Array NumPy da 10 a 49 in float64") 
+#np.savetxt scrive l'array su file di testo; 
+#fmt specifica il formato di ogni numero; 
+#'%.1f' significa float con 1 decimale header aggiunge una riga di commento in cima al file
+
+print("\nFile 'array.txt' salvato.")
+
+#6) Salvo su file CSV (EXTRA - Trofeo nascosto)
+with open("array.csv", "w", newline="", encoding="utf-8") as f: #newline='' è richiesto dal modulo csv su tutti i sistemi per evitare righe vuote tra i valori
+    writer = csv.writer(f) #csv.writer gestisce la formattazione e il separatore virgola in automatico
+    writer.writerow(["indice", "valore"]) #writerow scrive una singola riga nel file usando la lista come intestazione delle colonne
+    for i, valore in enumerate(array): #enumerate genera coppie (indice, valore) partendo da 0 cosi' ho sia la posizione che il numero
+        writer.writerow([i, valore])
+
+print("File 'array.csv' salvato. Hai platinato l'esercizio. COMPLIMENTI!")

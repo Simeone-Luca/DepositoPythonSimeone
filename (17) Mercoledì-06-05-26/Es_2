@@ -1,0 +1,93 @@
+import numpy as np
+import csv
+
+#CREAZIONE ARRAY CASUALE
+np.random.seed(42) #seed fissa il generatore di numeri casuali così ogni esecuzione produce gli stessi valori utile per la riproducibilità dell'esercizio
+array = np.random.randint(10, 51, size=20) #randint genera interi casuali il primo argomento è il minimo incluso il secondo è il massimo escluso quindi uso 51 per includere 50 size indica quanti elementi generare
+
+print("Array originale:")
+print(array)
+
+#PRIMI 10 ELEMENTI
+primi_10 = array[:10] #lo slicing usa la sintassi [inizio:fine:passo] omettendo l'inizio parto dall'indice 0 il 10 è escluso quindi ottengo gli indici 0-9
+
+print("\nPrimi 10 elementi (array[:10]):")
+print(primi_10)
+
+#ULTIMI 5 ELEMENTi
+ultimi_5 = array[-5:] #l'indice negativo in NumPy conta dalla fine dell'array quindi -5 è il quinto elemento partendo dal fondo omettendo la fine arrivo all'ultimo incluso
+
+print("\nUltimi 5 elementi (array[-5:]):")
+print(ultimi_5)
+
+#INDICE da 5 a 15 ESCLUSO
+mid = array[5:15] #estraggo una fetta centrale specificando inizio e fine esplicitamente l'indice 5 è incluso il 15 è escluso ottengo 10 elementi
+
+print("\nElementi dall'indice 5 al 15 escluso (array[5:15]):")
+print(mid)
+
+#OGNI TERZO ELEMENTO
+ogni_terzo = array[::3] #il terzo valore dello slicing è il passo ::3 significa parti dall'inizio vai alla fine salta 2 elementi ogni volta quindi prendo gli indici 0 3 6 9 12 15 18
+
+print("\nOgni terzo elemento (array[::3]):")
+print(ogni_terzo)
+
+#MODIFICA TRAMITE SLICING
+array_modificato = array.copy() #copy crea una copia indipendente dell'array senza copy modificare array_modificato cambierebbe anche array originale perché NumPy usa le viste per lo slicing
+array_modificato[5:10] = 99 #assegno 99 a tutti gli elementi tra indice 5 incluso e 10 escluso NumPy propaga il valore scalare su tutti gli elementi selezionati in automatico
+
+print("\nArray con indici 5-9 impostati a 99 (array[5:10] = 99):")
+print(array_modificato)
+
+#RIEPILOGO A SCHERMO
+print("\n" + "=====================")
+print("RIEPILOGO COMPLETO")
+print("========================")
+print(f"> Array originale:       {array}")
+print(f"> Primi 10:              {primi_10}")
+print(f"> Ultimi 5:              {ultimi_5}")
+print(f"> Indici 5-14:           {mid}")
+print(f"> Ogni terzo:            {ogni_terzo}")
+print(f"> Array modificato:      {array_modificato}")
+
+#SALVATAGGIO TXT
+with open("slicing_risultati.txt", "w", encoding="utf-8") as f: #apro in modalità 'w' per creare o sovrascrivere il file con i risultati
+    f.write("ESERCIZIO NUMPY SLICING\n")
+    f.write("="*50 + "\n\n")
+
+    sezioni = [ #lista di tuple dove ogni tupla contiene l'etichetta e l'array corrispondente così itero senza ripetere codice
+        ("Array originale",            array),
+        ("Primi 10  [: 10]",           primi_10),
+        ("Ultimi 5  [-5:]",            ultimi_5),
+        ("Indici 5-14  [5:15]",        mid),
+        ("Ogni terzo  [::3]",          ogni_terzo),
+        ("Array modificato [5:10]=99", array_modificato),
+    ]
+
+    for etichetta, arr in sezioni: #itero sulle tuple con unpacking così ho subito le due variabili pronte
+        f.write(f"{etichetta}:\n")
+        f.write(f"  valori >>> {arr}\n")
+        f.write(f"  dtype  >>> {arr.dtype}  |  shape >>> {arr.shape}\n\n") #scrivo anche dtype e shape per ogni sottoarray così il file è completo e informativo
+
+print("\nFile 'slicing_risultati.txt' salvato.")
+
+#SALVATAGGIO CSV
+intestazione = ["indice", "originale", "modificato", "primi_10", "ultimi_5", "mid_5_15", "ogni_terzo"] #definisco l'intestazione come lista così la passo direttamente a writerow
+
+with open("slicing_risultati.csv", "w", newline="", encoding="utf-8") as f: #newline='' è obbligatorio con il modulo csv per evitare righe vuote tra i record su tutti i sistemi operativi
+    writer = csv.writer(f)
+    writer.writerow(intestazione)
+
+    for i in range(20): #itero su tutti i 20 indici possibili e uso una stringa vuota come segnaposto per gli array più corti che non hanno un valore a quell'indice
+        riga = [
+            i,
+            array[i],
+            array_modificato[i],
+            primi_10[i]   if i < len(primi_10)   else "", #l'operatore ternario scrive il valore se l'indice è valido altrimenti lascia la cella vuota
+            ultimi_5[i]   if i < len(ultimi_5)   else "",
+            mid[i]        if i < len(mid)         else "",
+            ogni_terzo[i] if i < len(ogni_terzo) else "",
+        ]
+        writer.writerow(riga)
+
+print("File 'slicing_risultati.csv' salvato.")
