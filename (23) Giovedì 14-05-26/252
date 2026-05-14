@@ -1,0 +1,72 @@
+import pandas as pd  #per lavorare con i DataFrame
+import numpy as np   
+import random        
+
+np.random.seed(42)  #fisso il seme 
+
+nomi  = ["Luca","Giulia","Marco","Sara","Paolo","Elena","Dario","Marta","Fabio","Anna"]
+citta = ["Roma","Milano","Napoli","Torino","Firenze"]
+n     = 15
+
+eta     = np.random.randint(18, 80, n).astype(float)  #creo n età intere tra 18 e 79 anni
+salario = np.random.randint(20000, 80000, n).astype(float)  #genero n salari tra 20k e 80k
+
+idx_nan_eta     = np.random.choice(n, 3, replace=False)  #scelgo 3 indici casuali senza ripetizioni
+idx_nan_salario = np.random.choice(n, 3, replace=False)
+eta[idx_nan_eta]         = np.nan  #sostituisco quei valori con NaN per simulare dati mancanti
+salario[idx_nan_salario] = np.nan
+
+df = pd.DataFrame({  #costruisco il DataFrame passando un dizionario colonna e valori
+    "Nome"   : [random.choice(nomi) for _ in range(n)],
+    "Età"    : eta,
+    "Città"  : [random.choice(citta) for _ in range(n)],
+    "Salario": salario,
+})
+
+df = pd.concat([df, df.iloc[0:2]], ignore_index=True)  #aggiungo 2 righe duplicate per poi rimuoverle
+
+#2 - prime e ultime cinque righe
+print("Prime 5 righe:")
+print(df.head()) #head() restituisce le prime 5 righe default del dataframe
+print("Ultime 5 righe:")
+print(df.tail()) #tail() restituisce le ultime 5 righe in modo speculare a head()
+
+#3 - tipo di dati delle colonne
+print("Tipi di dati:")
+print(df.dtypes) #dtypes è un attributo che mostra il tipo (int float object ecc) di ogni colonna
+
+#4 - statistiche descrittive
+num_cols = df.select_dtypes(include="number")  #selezionoo solo le colonne numeriche per le statistiche
+
+print("Media:")
+print(num_cols.mean())    #mean() calcola la media aritmetica ignorando i NaN
+print("Mediana:")
+print(num_cols.median())  #median() calcola il valore centrale della distribuzione
+print("Deviazione standard:")
+print(num_cols.std())     #std() misura quanto i valori si discostano dalla media
+
+#5 - rimozione duplicati
+print(f"Righe prima: {len(df)}")
+df = df.drop_duplicates()  #con drop_duplicates() eliminao le righe identiche tenendo la prima occorrenza
+print(f"Righe dopo: {len(df)}")
+
+#6 - gestione valori mancanti
+print("Valori mancanti prima:")
+print(df.isnull().sum())  #con isnull() ho creato una maschera booleana e con sum() conto i true per colonna
+
+for col in ["Età", "Salario"]:
+    mediana = df[col].median()        #calcolo la mediana della colonna ignorando i NaN
+    df[col] = df[col].fillna(mediana) #sostituisco ogni NaN con la mediana appena calcolata
+
+print("Valori mancanti dopo:")
+print(df.isnull().sum()) #idem
+
+#7 - nuova colonna categoria età
+def categoria_eta(eta):         #definisco una funzione che classifica l'età in tre fasce
+    if   eta <= 18: return "Giovane"
+    elif eta <= 65: return "Adulto"
+    else:           return "Senior"
+
+df["Categoria Età"] = df["Età"].apply(categoria_eta)  #con apply() applichico la funzione a ogni elemento della colonna
+
+print(df[["Nome", "Età", "Categoria Età"]])

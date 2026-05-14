@@ -1,0 +1,16 @@
+import numpy as np
+
+array_linspace = np.linspace(0, 1, 12) #linspace genera 12 valori equidistanti nell'intervallo 0 1
+
+matrice_linspace = array_linspace.reshape(3, 4) #reshape riorganizza gli elementi esistenti 
+
+matrice_casuale = np.random.rand(3, 4) #rand genera valori float casuali nell'intervallo 0 1 
+
+somma_linspace = np.sum(matrice_linspace) #scorre tutti gli elementi della matrice indipendentemente dalla forma e restituisce un unico scalare
+somma_casuale = np.sum(matrice_casuale)
+
+print(f"Array linspace originale:\n{array_linspace}")
+print(f"\nMatrice linspace 3x4:\n{matrice_linspace}")
+print(f"\nMatrice casuale 3x4:\n{matrice_casuale}")
+print(f"\nSomma matrice linspace: {somma_linspace:.4f}")
+print(f"Somma matrice casuale: {somma_casuale:.4f}")

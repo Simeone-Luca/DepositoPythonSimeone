@@ -1,0 +1,65 @@
+import pandas as pd
+import numpy as np
+
+np.random.seed(42)  #fisso il seme
+
+prodotti = ["Laptop", "Smartphone", "Tablet", "Monitor", "Tastiera"]
+citta    = ["Roma", "Milano", "Napoli", "Torino", "Firenze"]
+n        = 30
+
+df = pd.DataFrame({  #costruisco il DataFrame con un dizionario colonna -> array di valori casuali
+    "Prodotto"       : np.random.choice(prodotti, n), #choice() pesca n elementi a caso dalla lista
+    "Quantità"       : np.random.randint(1, 50, n), #randint genera interi casuali nell'intervallo dato
+    "Prezzo Unitario": np.random.randint(10, 500, n).astype(float),
+    "Città"          : np.random.choice(citta, n),
+})
+
+print("DataFrame iniziale:")
+print(df.head(10))
+
+#2 colonna totale vendite
+df["Totale Vendite"] = df["Quantità"] * df["Prezzo Unitario"]  #pandas moltiplica colonna per colonna elemento per elemento
+
+print("DataFrame con Totale Vendite:")
+print(df.head())
+
+#3 raggruppamento per prodotto
+vendite_per_prodotto = (
+    df.groupby("Prodotto")["Totale Vendite"]  #groupby() raggruppa le righe che hanno lo stesso valore nella colonna indicata
+    .sum()                                    #su ogni gruppo calcolo la somma dei totali di vendita
+    .reset_index()                            #riporto Prodotto da indice a colonna normale per avere un DataFrame pulito
+)
+
+print("Totale vendite per prodotto:")
+print(vendite_per_prodotto)
+
+#4 prodotto più venduto per quantità
+quantita_per_prodotto = df.groupby("Prodotto")["Quantità"].sum()  #sommo la quantità venduta per ogni prodotto
+prodotto_top = quantita_per_prodotto.idxmax()  #idxmax() restituisce l'indice (cioè il nome del prodotto) del valore massimo
+
+print(f"Prodotto più venduto: {prodotto_top} ({quantita_per_prodotto[prodotto_top]} unità)")
+
+#5 città con maggior volume di vendite
+vendite_per_citta = df.groupby("Città")["Totale Vendite"].sum()  #raggruppo per città e sommo i totali di vendita di ognuna
+citta_top = vendite_per_citta.idxmax()  #idxmax() mi dà il nome della città con la somma più alta
+
+print(f"Città con più vendite: {citta_top} ({vendite_per_citta[citta_top]:.2f} €)")
+
+#6 filtraggio vendite superiori a 1000 €
+soglia = 1000
+df_alte_vendite = df[df["Totale Vendite"] > soglia]  #la condizione tra parentesi crea una maschera booleana e tengo solo le righe True
+
+print(f"Vendite superiori a {soglia} €:")
+print(df_alte_vendite)
+
+#7 ordinamento per totale vendite decrescente
+df = df.sort_values("Totale Vendite", ascending=False)  #sort_values() ordina le righe in base alla colonna indicata e ascending=False inverte l'ordine
+
+print("DataFrame ordinato per Totale Vendite (decrescente):")
+print(df.head(10))
+
+#8 numero di vendite per città
+vendite_count = df.groupby("Città")["Totale Vendite"].count()  #count() conta quante righe (cioè transazioni) esistono per ogni città
+
+print("Numero di vendite per città:")
+print(vendite_count)

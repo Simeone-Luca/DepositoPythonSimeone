@@ -1,0 +1,40 @@
+import numpy as np
+
+#seme per riproducibilità
+np.random.seed(42)
+
+#array 1D di 20 interi casuali tra 10 e 50
+array = np.random.randint(10, 51, size=20)
+print("\n∞" * 100)
+print(f"1) Array originale (20 elementi):\n   {array}\n")
+
+#primi 10 elementi
+primi_10 = array[:10]
+print(f"2) Primi 10 elementi:\n   {primi_10}\n")
+
+#ultimi 5 elementi
+ultimi_5 = array[-5:]
+print(f"3) Ultimi 5 elementi:\n   {ultimi_5}\n")
+
+#elementi dall'indice 5 all'indice 15 escluso
+indice_5_15 = array[5:15]
+print(f"4) Elementi dall'indice 5 al 15 (escluso):\n   {indice_5_15}\n")
+
+#ogni terzo elemento
+ogni_terzo = array[::3]
+print(f"5) Ogni terzo elemento:\n   {ogni_terzo}\n")
+
+#modifica degli elementi dall'indice 5 al 10 escluso > valore 99
+array[5:10] = 99
+print(f"6) Array dopo aver assegnato 99 agli indici 5-9:\n   {array}\n")
+
+#riepilogoo
+print("∞" * 100)
+print("[+] Riepilogo finale:\n")
+
+print(f"> Array modificato    : {array}")
+print(f"> Primi 10 elementi   : {array[:10]}")
+print(f"> Ultimi 5 elementi   : {array[-5:]}")
+print(f"> Indici 5 a 15.      : {array[5:15]}")
+print(f"> Ogni terzo elemento : {array[::3]}")
+print("∞" * 50)

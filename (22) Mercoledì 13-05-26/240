@@ -1,0 +1,209 @@
+import numpy as np
+from datetime import datetime
+
+FILE_LOG = "risultati.txt"
+
+#utilità
+
+def salva(titolo: str, contenuto: str):
+    with open(FILE_LOG, "a", encoding="utf-8") as f: #sovrascrivo le sessioni precedenti
+        f.write(f"\n[{datetime.now():%Y-%m-%d %H:%M:%S}]  {titolo}\n")
+        f.write("=" * 52 + "\n")
+        f.write(contenuto + "\n")
+    print(f"  >>> salvato in '{FILE_LOG}'")
+
+def fmt(m: np.ndarray, label: str = ""):
+    righe = [label] if label else []
+    righe += ["  " + "  ".join(f"{v:8.4f}" for v in r) for r in m] #:8.4f allinea ogni valore su 8 caratteri con 4 decimali
+    return "\n".join(righe)
+
+def leggi_int(msg: str, minimo: int = 1):
+    while True:
+        try:
+            v = int(input(msg))
+            if v >= minimo:
+                return v
+            print(f"  valore minimo: {minimo}")
+        except ValueError: #catcho input non numerico e ripeto il ciclo
+            print("  inserisci un intero")
+
+def leggi_float(msg: str):
+    while True:
+        try:
+            return float(input(msg))
+        except ValueError: #catcho input non numerico e ripeto il ciclo
+            print("  inserisci un numero")
+
+
+
+#parte 1 
+def crea_matrice():
+    r, c = leggi_int("  righe: "), leggi_int("  colonne: ")
+    m = np.random.randint(1, 101, (r, c)).astype(float) #randint genera interi [1,100], astype converte in float per operazioni future
+    testo = fmt(m, f"matrice {r}x{c}")
+    print("\n" + testo)
+    salva("creazione matrice", testo)
+    return m
+
+def estrai_sottocentrale(m: np.ndarray):
+    r, c = m.shape
+    if r < 3 or c < 3:
+        print("  matrice troppo piccola (min 3x3)")
+        return
+    sotto = m[1:r-1, 1:c-1] #slicing 2D che rimuove la prima e ultima riga e colonna ottenendo il nucleo centrale
+    testo = fmt(sotto, f"sotto-matrice centrale [1:{r-1}, 1:{c-1}]")
+    print("\n" + testo)
+    salva("sotto-matrice centrale", testo)
+
+def trasponi(m: np.ndarray):
+    testo = fmt(m.T, "trasposta") #.T è la trasposta: righe e colonne vengono scambiate
+    print("\n" + testo)
+    salva("trasposizione", testo)
+
+def somma_elementi(m: np.ndarray):
+    testo = f"somma: {np.sum(m):.4f}" #np.sum itera su tutti gli elementi indipendentemente dalla forma della matrice
+    print("\n  " + testo)
+    salva("somma", testo)
+
+
+
+#parte 2
+def moltiplicazione_elementwise(m: np.ndarray):
+    m2 = np.random.randint(1, 101, m.shape).astype(float) #genero m2 con la stessa forma di m per garantire compatibilità element-wise
+    testo = fmt(m, "A") + "\n\n" + fmt(m2, "B") + "\n\n" + fmt(m * m2, "A x B") #m * m2 è la moltiplicazione Hadamard: ogni cella (i,j) di A moltiplica la cella (i,j) di B
+    print("\n" + testo)
+    salva("element-wise", testo)
+
+def media_elementi(m: np.ndarray):
+    testo = f"media: {np.mean(m):.4f}" #np.mean calcola la media aritmetica su tutti gli elementi appiattendo implicitamente la matrice
+    print("\n  " + testo)
+    salva("media", testo)
+
+def determinante(m: np.ndarray):
+    r, c = m.shape
+    if r != c: #il determinante è definito solo per matrici quadrate
+        print(f"  serve una matrice quadrata (attuale: {r}x{c})")
+        return
+    testo = f"determinante {r}x{r}: {np.linalg.det(m):.4f}"
+    print("\n  " + testo)
+    salva("determinante", testo)
+
+
+
+#parte 3
+def inversa(m: np.ndarray) -> None:
+    r, c = m.shape
+    if r != c: #l'inversa esiste solo per matrici quadrate
+        print(f"  serve una matrice quadrata (attuale: {r}x{c})")
+        return
+    det = np.linalg.det(m)
+    if abs(det) < 1e-10: #un determinante prossimo a zero indica una matrice singolare: le righe sono linearmente dipendenti e l'inversa non esiste
+        print(f"  det = {det:.6f}: matrice singolare non invertibile")
+        return
+    testo = f"det: {det:.4f}\n\n" + fmt(m, "originale") + "\n\n" + fmt(np.linalg.inv(m), "inversa")
+    print("\n" + testo)
+    salva("inversa", testo)
+
+FUNZIONI = { #dizionario che associa il codice stringa al nome leggibile e alla funzione NumPy corrispondente
+    "1": ("sin",  np.sin),
+    "2": ("cos",  np.cos),
+    "3": ("exp",  np.exp),
+    "4": ("log",  np.log),  #log naturale: produce nan su valori <= 0
+    "5": ("sqrt", np.sqrt), #radice quadrata: produce nan su valori negativi
+    "6": ("abs",  np.abs),
+}
+
+def applica_funzione(m: np.ndarray) -> None:
+    print("\n  " + "  ".join(f"{k} {n}" for k, (n, _) in FUNZIONI.items()))
+    s = input("  scelta: ").strip()
+    if s not in FUNZIONI:
+        print("  scelta non valida")
+        return
+    nome, fn = FUNZIONI[s]
+    with np.errstate(invalid="ignore", divide="ignore"): #disabilito gli warning di NumPy per operazioni non definite come log(0) o sqrt(-1): restituiscono nan senza interrompere
+        res = fn(m)
+    testo = fmt(m, "originale") + "\n\n" + fmt(res, f"{nome}()")
+    print("\n" + testo)
+    salva(f"funzione {nome}", testo)
+
+def filtra_elementi(m: np.ndarray) -> None:
+    print("\n  1 maggiore  2 minore  3 uguale")
+    s = input("  scelta: ").strip()
+    if s not in {"1", "2", "3"}:
+        print("  scelta non valida")
+        return
+    soglia = leggi_float("  soglia: ")
+    match s:
+        case "1": maschera, desc = m > soglia,  f"> {soglia}"
+        case "2": maschera, desc = m < soglia,  f"< {soglia}"
+        case "3": maschera, desc = m == soglia, f"== {soglia}"
+    elementi = m[maschera] #boolean indexing, np usa la maschera true/false per restituire solo gli elemnenti che soddisfano la condizione
+    if elementi.size == 0:
+        print(f"\n  nessun elemento {desc}")
+        salva(f"filtro {desc}", f"nessun elemento {desc}")
+        return
+    pos = "\n".join(f"  [{r},{c}] = {m[r,c]:.4f}" for r, c in zip(*np.where(maschera))) #np.where restituisce tuple di array con indici di riga e colonna dei True; zip le accoppia in coordinate (r,c)
+    testo = f"condizione: {desc}  trovati: {elementi.size}\n\n{pos}"
+    print("\n" + testo)
+    salva(f"filtro {desc}", testo)
+
+
+
+#menu
+MENU = """
+  GESTIONE MATRICE 2D -- NUMPY
+  ────────────────────────────
+  -        Parte 1           -
+  1   Crea matrice
+  2   Sotto-matrice centrale
+  3   Trasposta
+  4   Somma elementi
+  ────────────────────────────
+  -        Parte 2           -
+  5   Moltiplicazione element-wise
+  6   Media elementi
+  7   Determinante
+  ────────────────────────────
+  -        Parte 3           -
+  8   Matrice inversa
+  9   Applica funzione matematica
+  10  Filtra per condizione
+  ────────────────────────────
+  0   Esci
+"""
+
+OPERAZIONI = { #dizionario che mappa ogni codice stringa alla funzione corrispondente
+    "2": estrai_sottocentrale,
+    "3": trasponi,
+    "4": somma_elementi,
+    "5": moltiplicazione_elementwise,
+    "6": media_elementi,
+    "7": determinante,
+    "8": inversa,
+    "9": applica_funzione,
+    "10": filtra_elementi,
+}
+
+def main():
+    matrice = None #la matrice parte come none, così ogni operazione controlla che esista prima di procedere
+
+    while True:
+        print(MENU)
+        scelta = input("  operazione: ").strip()
+
+        match scelta:
+            case "1":
+                matrice = crea_matrice()
+            case "0":
+                print("\n  arrivederci\n")
+                break
+            case s if s in OPERAZIONI: #verifica se la stringa è una chiave valida del dizionario
+                if matrice is None:
+                    print("[X] Crea prima una matrice con l'opzione 1!")
+                else:
+                    OPERAZIONI[s](matrice) #dispatch dinamico: chiama la funzione associata senza if annidati
+            case _:
+                print("[X] Sscelta non valida")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,63 @@
+import numpy as np
+import os 
+
+NOME_FILE = "risultati.txt" #costante globale
+
+def genera_e_calcola(): 
+    array_linspace = np.linspace(0, 10, 50) #linspace genera 50 valori equidistanti in 0 10 
+    array_random = np.random.random(50) #random.random genera 50 float con distribuzione uniforme in 0, 1 
+
+    array_somma = array_linspace + array_random #l'operatore "+" tra due array np di uguale lunghezza esegue la somma elemento per elemento senza loop grazie alla vettorizzazione
+
+    somma_totale = np.sum(array_somma) #somma tutti gli elementi dell'array
+
+    somma_condizionale = np.sum(array_somma[array_somma > 5]) #array_somma > 5 produce un array booleano della stessa forma con True dove la condizione è soddisfatta 
+    #usarlo come indice dentro [] mi permete di filtrare solo quei elementi poi np.sum li somma
+
+    return array_linspace, array_random, array_somma, somma_totale, somma_condizionale
+
+def salva_su_file(array_linspace, array_random, array_somma, somma_totale, somma_condizionale, modalita): #w per sovrascrivere o a per appendere passato dall'esterno
+    with open(NOME_FILE, modalita, encoding="utf-8") as f: #with garantisce la chiusura del file
+        f.write("=" * 50 + "\n")
+        f.write(f"Array linspace (0-10, 50 elementi):\n{array_linspace}\n\n")
+        f.write(f"Array random (0-1, 50 elementi):\n{array_random}\n\n")
+        f.write(f"Array somma elemento per elemento:\n{array_somma}\n\n")
+        f.write(f"Somma totale: {somma_totale:.4f}\n")
+        f.write(f"Somma elementi > 5: {somma_condizionale:.4f}\n")
+        f.write("=" * 50 + "\n\n")
+
+def chiedi_modalita_file():
+    if os.path.exists(NOME_FILE): #controlla se il percorso esiste nel filesystem restituisce True o False
+        while True:
+            scelta = input(f"Il file '{NOME_FILE}' esiste già. Sovrascrivere? (s/n): ").strip().lower()
+            if scelta == 's':
+                return 'w' 
+            elif scelta == 'n':
+                return 'a' 
+            print("  Inserisci 's' o 'n'.")
+    return 'w'
+
+def main():
+    modalita = chiedi_modalita_file() #chiedo la modalità una sola volta prima del loop così i giri successivi appendono sempre senza richiedere
+
+    while True:
+        risultati = genera_e_calcola() #funzione restituiisce una tupla che assegno a una variabile
+        array_linspace, array_random, array_somma, somma_totale, somma_condizionale = risultati 
+
+        print(f"\nArray linspace:\n{array_linspace}")
+        print(f"\nArray random:\n{array_random}")
+        print(f"\nArray somma:\n{array_somma}")
+        print(f"\nSomma totale: {somma_totale:.4f}")
+        print(f"Somma elementi > 5: {somma_condizionale:.4f}")
+
+        salva_su_file(array_linspace, array_random, array_somma, somma_totale, somma_condizionale, modalita)
+        print(f"\nDati salvati in '{NOME_FILE}'.")
+
+        modalita = 'a' #dopo il primo giro forzo sempre append indipendentemente dalla scelta iniziale così ogni giro aggiunge senza sovrascrivere i precedenti
+
+        risposta = input("\nEseguire un altro giro? (s/n): ").strip().lower()
+        if risposta != 's': #qualsiasi risposta diversa da s termina il loop
+            break
+
+if __name__ == "__main__":
+    main()

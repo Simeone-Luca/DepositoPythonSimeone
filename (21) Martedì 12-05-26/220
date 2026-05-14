@@ -1,0 +1,38 @@
+import numpy as np
+
+#matrice 6×6 di interi casuali tra 1 e 100
+matrice = np.random.randint(1, 101, size=(6, 6))
+print("\n∞" * 100)
+print("1. Matrice originale 6×6:")
+print(matrice)
+
+#sotto-matrice centrale 4×4 >>> righe 1:5, colonne 1:5
+sotto = matrice[1:5, 1:5].copy() # .copy() per lavorare in modo indipendente
+print("\n2. Sotto matrice centrale 4×4:")
+print(sotto)
+
+#inversione delle righe
+invertita = sotto[::-1]
+print("\n3. Matrice invertita con righe capovolte:")
+print(invertita)
+
+#diagonale principale >>> array mono dimensionale
+diagonale = np.diag(invertita)
+print("\n4. Diagonale principale:")
+print(diagonale)
+
+#multipli di 3  >>> impostatati -1 
+modificata = invertita.copy()
+modificata[modificata % 3 == 0] = -1
+print("\n5. Matrice invertita:")
+print(modificata)
+
+#riepilogo
+print("\n" + "∞" * 100)
+print("Riepilogo:\n")
+print("\nMatrice originale 6×6:\n", matrice)
+print("\nSotto-matrice centrale 4×4:\n", sotto)
+print("\nMatrice invertita:\n", invertita)
+print("\nDiagonale principale:\n", diagonale)
+print("\nMatrice invertita modificata (multipli di 3 → -1):\n", modificata)
+print("∞" * 52)
